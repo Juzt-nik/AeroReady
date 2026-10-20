@@ -1,0 +1,29 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # exact versions the suite was verified against
+          - python: "3.12"
+            requirements: requirements-lock.txt
+          # latest releases allowed by requirements.txt (catches upstream breakage early)
+          - python: "3.13"
+            requirements: requirements.txt
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: ${{ matrix.requirements }}
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -r ${{ matrix.requirements }}
+      - run: python -m pytest -q
